@@ -18,8 +18,10 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { UserAvatar } from "@/components/user-avatar";
 import { BotAvatar } from "@/components/bot-avatar";
+import { useProModal } from "@/hooks/use-pro-modal";
 
 const ConversationPage = () => {
+    const proModal = useProModal();
     const router = useRouter();
     const [messages, setMessages] = useState<any[]>([]);
 
@@ -51,11 +53,13 @@ const ConversationPage = () => {
             form.reset(); 
  
         } catch(error: any) {
-            console.log(error);
+            // In case of 404 error, which we through on API limit expiry, open the pro modal.
+            if (error?.response?.status === 403) {
+                proModal.onOpen();
+            }
         } finally {
             router.refresh();
-        }
-
+        } 
     }
 
     return (
