@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { StreamingTextResponse, CohereStream } from 'ai'
 import { auth } from '@clerk/nextjs';
 
-// IMPORTANT! Set the runtime to edge
-export const runtime = 'edge'
+import { increaseApiLimit, checkApiLimit } from '@/lib/api-limit';
+
 const instructionMessage = "You are a code generator, You must answer only in markdown code snippets. Use code comments for explanations: \n\n";
 
 export async function POST(req: Request) {
@@ -21,6 +21,12 @@ export async function POST(req: Request) {
             return new NextResponse("Messages are required", { status: 400 });
         }
 
+        const freeTrial = await checkApiLimit();
+
+        if (!freeTrial) {
+          return new NextResponse("Free trial has expired", {
+            status: 403 });
+        }
     
         const body = JSON.stringify({
             prompt: instructionMessage + messages,
@@ -40,6 +46,8 @@ export async function POST(req: Request) {
             },
             body
           })
+
+          await increaseApiLimit();
 
           return new NextResponse(response.body, { status: 200 });
 

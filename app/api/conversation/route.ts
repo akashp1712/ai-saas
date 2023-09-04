@@ -2,8 +2,11 @@ import { NextResponse } from 'next/server';
 import { StreamingTextResponse, CohereStream } from 'ai'
 import { auth } from '@clerk/nextjs';
 
+import { increaseApiLimit, checkApiLimit } from '@/lib/api-limit';
+
 // IMPORTANT! Set the runtime to edge
-export const runtime = 'edge'
+// export const runtime = 'edge'
+// commenting out, as getting error: [CONVERSATION_ERROR] [Error: PrismaClient is unable to run in Vercel Edge Functions. As an alternative, try Accelerate: https://pris.ly/d/accelerate.
 
 export async function POST(req: Request) {
 
@@ -18,9 +21,15 @@ export async function POST(req: Request) {
 
         if (!messages) {
             return new NextResponse("Messages are required", { status: 400 });
+        } 
+
+        const freeTrial = await checkApiLimit();
+
+        if (!freeTrial) {
+          return new NextResponse("Free trial has expired", {
+            status: 403 });
         }
 
-    
         const body = JSON.stringify({
             prompt: messages,
             model: 'command',
@@ -39,6 +48,8 @@ export async function POST(req: Request) {
             },
             body
           })
+
+          await increaseApiLimit();
 
           return new NextResponse(response.body, { status: 200 });
 
