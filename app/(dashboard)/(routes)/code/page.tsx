@@ -49,6 +49,8 @@ const CodePage = () => {
             //console.log("API response data", response.data.generations[0].text);
             setMessages((current) => [...current, userMessage, { role: "bot", content: response.data.generations[0].text } ]);
 
+            form.reset(); 
+
         } catch(error: any) {
             console.log(error);
         } finally {
