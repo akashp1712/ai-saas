@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs';
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge'
+const instructionMessage = "You are a code generator, You must answer only in markdown code snippets. Use code comments for explanations: \n\n";
 
 export async function POST(req: Request) {
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
 
     
         const body = JSON.stringify({
-            prompt: messages,
+            prompt: instructionMessage + messages,
             model: 'command',
             max_tokens: 300,
             stop_sequences: [],
