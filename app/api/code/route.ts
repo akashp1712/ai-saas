@@ -3,6 +3,7 @@ import { StreamingTextResponse, CohereStream } from 'ai'
 import { auth } from '@clerk/nextjs';
 
 import { increaseApiLimit, checkApiLimit } from '@/lib/api-limit';
+import { checkSubscription } from '@/lib/subscription';
 
 const instructionMessage = "You are a code generator, You must answer only in markdown code snippets. Use code comments for explanations: \n\n";
 
@@ -22,8 +23,9 @@ export async function POST(req: Request) {
         }
 
         const freeTrial = await checkApiLimit();
+        const isPro = await checkSubscription();
 
-        if (!freeTrial) {
+        if (!freeTrial && !isPro) {
           return new NextResponse("Free trial has expired", {
             status: 403 });
         }
@@ -47,7 +49,9 @@ export async function POST(req: Request) {
             body
           })
 
-          await increaseApiLimit();
+          if (!isPro) {
+            await increaseApiLimit();
+          }
 
           return new NextResponse(response.body, { status: 200 });
 
