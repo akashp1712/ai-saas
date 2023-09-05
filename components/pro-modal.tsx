@@ -1,5 +1,6 @@
 'use client';
 
+import axios from "axios";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useProModal } from "@/hooks/use-pro-modal";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, Check, Code, Image, MessageSquare, Music, Video, VideoIcon, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 
 const tools = [
@@ -46,6 +48,20 @@ const tools = [
 export const ProModal = () => {
 
     const proModal = useProModal();
+    const [loading, setLoading] = useState(false);
+
+    const onSubscribe = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get("/api/stripe");
+            // the API returns a url, so we want to fetch that
+            window.location.href = response.data.url;
+        } catch (error) {
+            console.log(error, "STRIPE_CLIENT_ERROR");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <Dialog open={proModal.isOpen} onOpenChange={proModal.onClose}>
@@ -80,6 +96,7 @@ export const ProModal = () => {
                 </DialogHeader>
                 <DialogFooter>
                     <Button
+                        onClick={onSubscribe}
                         size="lg"
                         variant="premium"
                         className="w-full"
